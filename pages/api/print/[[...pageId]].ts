@@ -122,7 +122,6 @@ async function createPDF(params: PDFGen) {
     
     await page.evaluate(js);
 
-    await page.screenshot()
     res = await page.pdf({
       format: 'Letter', scale: 0.85, margin: {
         top: newMargin, bottom: newMargin, left: newMargin, right: newMargin
