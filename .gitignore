@@ -35,4 +35,5 @@ yarn-error.log*
 # vercel
 .vercel
 
-/public/print
+/public/print/
+!.keep
