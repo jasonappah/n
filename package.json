@@ -29,6 +29,7 @@
     "@google-cloud/firestore": "^4.9.1",
     "chrome-aws-lambda": "^5.5.0",
     "classnames": "^2.2.6",
+    "cors": "^2.8.5",
     "dangerously-set-html-content": "^1.0.8",
     "fathom-client": "^3.0.0",
     "got": "^11.8.1",

@@ -1,6 +1,7 @@
+import Cors from 'cors'
 import { NextApiRequest, NextApiResponse } from 'next'
 import chromium from 'chrome-aws-lambda'
-const fs = require('fs')
+const cors = Cors()
 const fsPromises = require("fs/promises")
 
 interface PDFGen {
@@ -8,7 +9,22 @@ interface PDFGen {
   path: String
 }
 
+// Helper method to wait for a middleware to execute before continuing
+// And to throw an error when an error happens in a middleware
+function runMiddleware(req, res, fn) {
+  return new Promise((resolve, reject) => {
+    fn(req, res, (result) => {
+      if (result instanceof Error) {
+        return reject(result)
+      }
+
+      return resolve(result)
+    })
+  })
+}
+
 export default async (req: NextApiRequest, res: NextApiResponse) => {
+  await runMiddleware(req, res, cors)
   const regex = /[^A-Za-z0-9]/
   const pageId = req.query.pageId as string || "b7b46e3339f04662b52c7a700d22a338"
 
@@ -38,8 +54,9 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     } else {
       PAGE_EXISTS = false
     }
-  } catch {
+  } catch (e) {
     PAGE_EXISTS = false
+    console.log(e)
   }
   // if so, try to open the file in the cache. if there's an error, the file is not cached, so set this var to false
   // if there's no error, then check if the file was cached in the last 30 minutes.
@@ -77,11 +94,25 @@ async function createPDF(params: PDFGen) {
 
     // make page into pdf and set res to be it. 
     // also write the file to our cache
-
+    const newMargin = "0.5in"
     const page = await browser.newPage();
-    await page.setViewport({ width: 1920, height: 1080, deviceScaleFactor: 0.85 });
+    await page.setViewport({ width: 1920, height: 1080 });
+    
+    const css = `
+    body, div, article, header, p, h1, h2, h3, h4, h5, h6, a { font-family: "Inter", sans-serif !important; }`
+
+    const js = `document.head.insertAdjacentHTML("beforeend", '<link rel="preconnect" href="https://fonts.gstatic.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet"><style>${css}</style>')`
+    
     await page.goto(`https://notion.so/${params.page}`, { waitUntil: 'networkidle0' });
-    res = await page.pdf({ format: 'Letter' });
+
+    await page.evaluate(js);
+
+    await page.screenshot()
+    res = await page.pdf({
+      format: 'Letter', scale: 0.85, margin: {
+        top: newMargin, bottom: newMargin, left: newMargin, right: newMargin
+      }
+    });
     return res
 
   } finally {

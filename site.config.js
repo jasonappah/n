@@ -16,9 +16,6 @@ module.exports = {
   socialImageTitle: 'JasonAA',
   socialImageSubtitle: 'My notes, todos, and docs.',
 
-  // social usernames (optional)
-  github: 'jasonappah',
-
   // default notion icon and cover images for site-wide consistency (optional)
   // page-specific values will override these site-wide defaults
   defaultPageIcon: null,
