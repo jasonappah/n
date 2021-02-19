@@ -7,5 +7,13 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 module.exports = withBundleAnalyzer({
   images: {
     domains: ['pbs.twimg.com']
-  }
+  },
+  async rewrites() {
+    return [
+      {
+        source: '/print/:path*',
+        destination: '/api/print/:path*', 
+      },
+    ]
+  },
 })

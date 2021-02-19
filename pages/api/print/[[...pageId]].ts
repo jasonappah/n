@@ -25,8 +25,18 @@ function runMiddleware(req, res, fn) {
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {
   await runMiddleware(req, res, cors)
+  const fallbackPageId = "b7b46e3339f04662b52c7a700d22a338"
   const regex = /[^A-Za-z0-9]/
-  const pageId = req.query.pageId as string || "b7b46e3339f04662b52c7a700d22a338"
+  var pageId = ""
+  try {
+    pageId = req.query.pageId[0] as string
+  } catch {
+    pageId = fallbackPageId
+  }
+
+  if (pageId == "help" || pageId == "h") {
+    pageId = fallbackPageId
+  }
 
   if (regex.test(pageId)) {
     return res.status(400).send({ error: 'This page id contains non-alphanumeric characters. Please remove them and try again.' })
@@ -44,7 +54,9 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
 
   try {
     const printFolder = await fsPromises.readdir(folderPath)
-    if (filename in printFolder) {
+    console.log(printFolder)
+    const check = printFolder.includes(filename)
+    if (check) {
       const stats = await fsPromises.lstat(filePath)
       if (new Date().getTime() - stats.mtime.getTime() > resetCacheMs) {
         PAGE_EXISTS = false
@@ -58,16 +70,20 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     PAGE_EXISTS = false
     console.log(e)
   }
+
   // if so, try to open the file in the cache. if there's an error, the file is not cached, so set this var to false
   // if there's no error, then check if the file was cached in the last 30 minutes.
   // if so, take the file and set pdf to the file, if not, we want to update the cache so delete and overwrite the file
 
 
   if (!PAGE_EXISTS) {
+    console.log("Creating PDF for file", filename)
     pdf = await createPDF({
       page: pageId,
       path: filePath
     })
+  } else {
+    console.log("Pulling PDF from cache for file", filename)
   }
 
   res.setHeader('Content-Type', 'application/pdf')
@@ -98,13 +114,12 @@ async function createPDF(params: PDFGen) {
     const page = await browser.newPage();
     await page.setViewport({ width: 1920, height: 1080 });
     
-    const css = `
-    body, div, article, header, p, h1, h2, h3, h4, h5, h6, a { font-family: "Inter", sans-serif !important; }`
+    const css = `body, div, article, header, p, h1, h2, h3, h4, h5, h6, a { font-family: "Inter", sans-serif !important; }`
 
     const js = `document.head.insertAdjacentHTML("beforeend", '<link rel="preconnect" href="https://fonts.gstatic.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet"><style>${css}</style>')`
-    
+    console.log(js)
     await page.goto(`https://notion.so/${params.page}`, { waitUntil: 'networkidle0' });
-
+    
     await page.evaluate(js);
 
     await page.screenshot()
