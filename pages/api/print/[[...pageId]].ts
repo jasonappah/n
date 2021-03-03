@@ -138,5 +138,4 @@ async function createPDF(params: PDFGen) {
       await fsPromises.writeFile(params.path, res)
     }
   }
-
 }
