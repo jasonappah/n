@@ -101,18 +101,18 @@ async function createPDF(params: PDFGen) {
     )
 
     browser = await chromium.puppeteer.launch({
-      args: chromium.args,
+      args: [...chromium.args, '--no-sandbox']
       defaultViewport: chromium.defaultViewport,
       executablePath: await chromium.executablePath,
       headless: true, // chromium.headless,
-      ignoreHTTPSErrors: true
+      ignoreHTTPSErrors: true,
     })
 
     // make page into pdf and set res to be it. 
     // also write the file to our cache
     const newMargin = "0.5in"
     const page = await browser.newPage();
-    await page.setViewport({ width: 1920, height: 1080 });
+    await page.setViewport({ width: 1280, height: 720 });
     
     const css = `body, div, article, header, p, h1, h2, h3, h4, h5, h6, a { font-family: "Inter", sans-serif !important; }`
 
@@ -127,6 +127,7 @@ async function createPDF(params: PDFGen) {
         top: newMargin, bottom: newMargin, left: newMargin, right: newMargin
       }
     });
+    
     return res
 
   } finally {
