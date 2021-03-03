@@ -101,7 +101,7 @@ async function createPDF(params: PDFGen) {
     )
 
     browser = await chromium.puppeteer.launch({
-      args: [...chromium.args, '--no-sandbox']
+      args: [...chromium.args, '--no-sandbox'],
       defaultViewport: chromium.defaultViewport,
       executablePath: await chromium.executablePath,
       headless: true, // chromium.headless,
