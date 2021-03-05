@@ -10,9 +10,10 @@
     "node": ">=10"
   },
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "dev": "yarn run next dev",
+    "build": "yarn run next build",
+    "start": "yarn run next start",
+    "start:prod": "yarn run build && yarn run start",
     "deploy": "vercel --prod",
     "deps": "run-s deps:*",
     "deps:update": "[ -z $GITHUB_ACTIONS ] && yarn add notion-client notion-types notion-utils react-notion-x || echo 'Skipping deps:update on CI'",
@@ -35,6 +36,7 @@
     "isomorphic-unfetch": "^3.1.0",
     "lqip-modern": "^1.1.3",
     "next": "^10.0.6",
+    "cors": "^2.8.5",
     "notion-client": "^4.3.2",
     "notion-types": "^4.3.0",
     "notion-utils": "^4.3.0",
