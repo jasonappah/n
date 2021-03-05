@@ -10,9 +10,9 @@
     "node": ">=8"
   },
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "dev": "yarn run next dev",
+    "build": "yarn run next build",
+    "start": "yarn run next start",
     "start:prod": "yarn run build && yarn run start",
     "deploy": "vercel --prod",
     "deps": "run-s deps:*",
