@@ -13,6 +13,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "start:prod": "yarn run build && yarn run start",
     "deploy": "vercel --prod",
     "deps": "run-s deps:*",
     "deps:update": "[ -z $GITHUB_ACTIONS ] && yarn add notion-client notion-types notion-utils react-notion-x static-tweets react-static-tweets || echo 'Skipping deps:update on CI'",
