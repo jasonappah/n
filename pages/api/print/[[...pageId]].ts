@@ -2,7 +2,7 @@ import Cors from 'cors'
 import { NextApiRequest, NextApiResponse } from 'next'
 import chromium from 'chrome-aws-lambda'
 const cors = Cors()
-const fsPromises = require("fs/promises").promises;
+const fsPromises = require("fs").promises;
 
 interface PDFGen {
   page: String,
