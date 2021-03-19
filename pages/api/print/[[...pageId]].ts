@@ -69,6 +69,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
   } catch (e) {
     PAGE_EXISTS = false
     console.log(e)
+    return res.status(400).send({ error: e })
   }
 
   // if so, try to open the file in the cache. if there's an error, the file is not cached, so set this var to false
@@ -121,6 +122,8 @@ async function createPDF(params: PDFGen) {
     await page.goto(`https://notion.so/${params.page}`, { waitUntil: 'networkidle0' });
     
     await page.evaluate(js);
+    // just to make the page wait for the fonts to load in
+    await page.screenshot()
 
     res = await page.pdf({
       format: 'Letter', scale: 0.85, margin: {
