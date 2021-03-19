@@ -21,7 +21,6 @@ RUN  apt-get update \
 
 # Install Puppeteer under /node_modules so it's available system-wide
 ADD package.json yarn.lock /
-RUN npm install -g yarn
 RUN yarn
 
 EXPOSE 3000
