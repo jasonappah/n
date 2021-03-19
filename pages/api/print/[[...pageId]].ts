@@ -7,6 +7,7 @@ const fsPromises = require('fs').promises
 interface PDFGen {
   page: String
   path: String
+  dark: boolean
 }
 
 // Helper method to wait for a middleware to execute before continuing
@@ -39,15 +40,15 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
   }
 
   if (regex.test(pageId)) {
-    return res
-      .status(400)
-      .send({
-        error:
-          'This page id contains non-alphanumeric characters. Please remove them and try again.'
-      })
+    return res.status(400).send({
+      error:
+        'This page id contains non-alphanumeric characters. Please remove them and try again.'
+    })
   }
 
-  const filename = `${pageId}.pdf`
+  console.log(req.query)
+  const darkMode = typeof req.query.dark === 'string' ? true : false
+  const filename = `${pageId}${darkMode ? '-dark' : ''}.pdf`
   const folderPath = 'public/print'
   const filePath = `${folderPath}/${filename}`
 
@@ -85,7 +86,8 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     console.log('Creating PDF for file', filename)
     pdf = await createPDF({
       page: pageId,
-      path: filePath
+      path: filePath,
+      dark: darkMode
     })
   } else {
     console.log('Pulling PDF from cache for file', filename)
@@ -115,8 +117,6 @@ async function createPDF(params: PDFGen) {
 
     // make page into pdf and set res to be it.
     // also write the file to our cache
-    // const newMargin = "0.25in"
-    const newMargin = '0in'
     const page = await browser.newPage()
     await page.setViewport({ width: 1920, height: 1080 })
 
@@ -127,6 +127,17 @@ async function createPDF(params: PDFGen) {
       waitUntil: 'networkidle0'
     })
 
+    const darkModeKeys = ['Control', 'Shift', 'KeyL']
+
+    if (params.dark) {
+      for (const key in darkModeKeys) {
+        await page.keyboard.down(key)
+      }
+      for (const key in darkModeKeys) {
+        await page.keyboard.up(key)
+      }
+    }
+
     await page.evaluate(js)
 
     // just to make the page wait for the fonts to load in
@@ -135,7 +146,7 @@ async function createPDF(params: PDFGen) {
     res = await page.pdf({
       format: 'Letter',
       displayHeaderFooter: false,
-      scale: 0.75,
+      scale: 0.75
     })
 
     return res
@@ -144,7 +155,7 @@ async function createPDF(params: PDFGen) {
       await browser.close()
     }
     if (res) {
-      await fsPromises.writeFile(params.path, res)
+      // await fsPromises.writeFile(params.path, res)
     }
   }
 }
