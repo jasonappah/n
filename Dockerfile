@@ -19,11 +19,13 @@ RUN  apt-get update \
      && wget --quiet https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh -O /usr/sbin/wait-for-it.sh \
      && chmod +x /usr/sbin/wait-for-it.sh
 
-# Install Puppeteer under /node_modules so it's available system-wide
-ADD package.json yarn.lock /
-RUN yarn
+COPY . /home/app
+WORKDIR /home/app
 
-EXPOSE 3000
+RUN yarn
 
 # Running the app
 CMD "yarn" "run" "start:prod"
+
+EXPOSE 3000
+
