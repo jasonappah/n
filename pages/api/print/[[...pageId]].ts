@@ -69,6 +69,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
   } catch (e) {
     PAGE_EXISTS = false
     console.log(e)
+    return res.status(400).send({ error: e })
   }
 
   // if so, try to open the file in the cache. if there's an error, the file is not cached, so set this var to false
@@ -101,7 +102,7 @@ async function createPDF(params: PDFGen) {
     )
 
     browser = await chromium.puppeteer.launch({
-      args: [...chromium.args, '--no-sandbox'],
+      args: [...chromium.args, '--no-sandbox', '--font-render-hinting=none'],
       defaultViewport: chromium.defaultViewport,
       executablePath: await chromium.executablePath,
       headless: true, // chromium.headless,
@@ -114,13 +115,15 @@ async function createPDF(params: PDFGen) {
     const page = await browser.newPage();
     await page.setViewport({ width: 1280, height: 720 });
     
-    const css = `body, div, article, header, p, h1, h2, h3, h4, h5, h6, a { font-family: "Inter", sans-serif !important; }`
+    const css = `body, div, article, header, p, h1, h2, h3, h4, h5, h6, a, span, footer, aside { font-family: "Inter", sans-serif !important; }`
 
     const js = `document.head.insertAdjacentHTML("beforeend", '<link rel="preconnect" href="https://fonts.gstatic.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet"><style>${css}</style>')`
     console.log(js)
     await page.goto(`https://notion.so/${params.page}`, { waitUntil: 'networkidle0' });
     
     await page.evaluate(js);
+    // just to make the page wait for the fonts to load in
+    await page.screenshot()
 
     res = await page.pdf({
       format: 'Letter', scale: 0.85, margin: {
