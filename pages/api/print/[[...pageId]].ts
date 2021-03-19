@@ -2,10 +2,10 @@ import Cors from 'cors'
 import { NextApiRequest, NextApiResponse } from 'next'
 import chromium from 'chrome-aws-lambda'
 const cors = Cors()
-const fsPromises = require("fs").promises;
+const fsPromises = require('fs').promises
 
 interface PDFGen {
-  page: String,
+  page: String
   path: String
 }
 
@@ -25,21 +25,26 @@ function runMiddleware(req, res, fn) {
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {
   await runMiddleware(req, res, cors)
-  const fallbackPageId = "b7b46e3339f04662b52c7a700d22a338"
+  const fallbackPageId = 'b7b46e3339f04662b52c7a700d22a338'
   const regex = /[^A-Za-z0-9]/
-  var pageId = ""
+  var pageId = ''
   try {
     pageId = req.query.pageId[0] as string
   } catch {
     pageId = fallbackPageId
   }
 
-  if (pageId == "help" || pageId == "h") {
+  if (pageId == 'help' || pageId == 'h') {
     pageId = fallbackPageId
   }
 
   if (regex.test(pageId)) {
-    return res.status(400).send({ error: 'This page id contains non-alphanumeric characters. Please remove them and try again.' })
+    return res
+      .status(400)
+      .send({
+        error:
+          'This page id contains non-alphanumeric characters. Please remove them and try again.'
+      })
   }
 
   const filename = `${pageId}.pdf`
@@ -49,12 +54,12 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
   // 15 minutes -> convert to secs -> convert to millisecs
   const resetCacheMs = 15 * 60 * 1000
 
-  var pdf;
-  var PAGE_EXISTS = true;
+  var pdf
+  var PAGE_EXISTS = true
 
   try {
     const printFolder = await fsPromises.readdir(folderPath)
-    console.log(printFolder)
+    // console.log(printFolder)
     const check = printFolder.includes(filename)
     if (check) {
       const stats = await fsPromises.lstat(filePath)
@@ -76,15 +81,14 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
   // if there's no error, then check if the file was cached in the last 30 minutes.
   // if so, take the file and set pdf to the file, if not, we want to update the cache so delete and overwrite the file
 
-
   if (!PAGE_EXISTS) {
-    console.log("Creating PDF for file", filename)
+    console.log('Creating PDF for file', filename)
     pdf = await createPDF({
       page: pageId,
       path: filePath
     })
   } else {
-    console.log("Pulling PDF from cache for file", filename)
+    console.log('Pulling PDF from cache for file', filename)
   }
 
   res.setHeader('Content-Type', 'application/pdf')
@@ -106,33 +110,35 @@ async function createPDF(params: PDFGen) {
       defaultViewport: chromium.defaultViewport,
       executablePath: await chromium.executablePath,
       headless: true, // chromium.headless,
-      ignoreHTTPSErrors: true,
+      ignoreHTTPSErrors: true
     })
 
-    // make page into pdf and set res to be it. 
+    // make page into pdf and set res to be it.
     // also write the file to our cache
-    const newMargin = "0.5in"
-    const page = await browser.newPage();
-    await page.setViewport({ width: 1280, height: 720 });
-    
-    const css = `body, div, article, header, p, h1, h2, h3, h4, h5, h6, a, span, footer, aside { font-family: "Inter", sans-serif !important; }`
+    // const newMargin = "0.25in"
+    const newMargin = '0in'
+    const page = await browser.newPage()
+    await page.setViewport({ width: 1920, height: 1080 })
 
+    const css = `body, div, article, header, p, h1, h2, h3, h4, h5, h6, a, span, footer, aside { font-family: "Inter", sans-serif !important; } div.notion-page-controls {margin-top: 15px !important; height: 0px !important;} div.notion-page-details-controls { padding-bottom: 5px !important; } div.notion-column_list-block > div > div { padding-top: 0px !important;}`
     const js = `document.head.insertAdjacentHTML("beforeend", '<link rel="preconnect" href="https://fonts.gstatic.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet"><style>${css}</style>')`
-    console.log(js)
-    await page.goto(`https://notion.so/${params.page}`, { waitUntil: 'networkidle0' });
-    
-    await page.evaluate(js);
+    // console.log(js)
+    await page.goto(`https://notion.so/${params.page}`, {
+      waitUntil: 'networkidle0'
+    })
+
+    await page.evaluate(js)
+
     // just to make the page wait for the fonts to load in
     await page.screenshot()
 
     res = await page.pdf({
-      format: 'Letter', scale: 0.85, margin: {
-        top: newMargin, bottom: newMargin, left: newMargin, right: newMargin
-      }
-    });
-    
-    return res
+      format: 'Letter',
+      displayHeaderFooter: false,
+      scale: 0.75,
+    })
 
+    return res
   } finally {
     if (browser) {
       await browser.close()
