@@ -12,8 +12,8 @@ module.exports = withBundleAnalyzer({
     return [
       {
         source: '/print/:path*',
-        destination: '/api/print/:path*', 
-      },
+        destination: '/api/print/:path*'
+      }
     ]
-  },
+  }
 })
