@@ -120,7 +120,7 @@ async function createPDF(params: PDFGen) {
     const page = await browser.newPage()
     await page.setViewport({ width: 1920, height: 1080 })
 
-    const css = `body, div, article, header, p, h1, h2, h3, h4, h5, h6, a, span, footer, aside { font-family: "Inter", sans-serif !important; } div.notion-page-controls {margin-top: 15px !important; height: 0px !important;} div.notion-page-details-controls { padding-bottom: 5px !important; } div.notion-column_list-block > div > div { padding-top: 0px !important;}`
+    const css = `body, div, article, header, p, h1, h2, h3, h4, h5, h6, a, span, footer, aside { font-family: "Inter", sans-serif !important; } div.notion-page-controls {margin-top: 15px !important; height: 0px !important;} div.notion-page-details-controls { padding-bottom: 5px !important; } div.notion-column_list-block > div > div { padding-top: 0px !important;} body > :last-child: { margin-bottom: -1px; overflow: hidden; }`
     const js = `document.head.insertAdjacentHTML("beforeend", '<link rel="preconnect" href="https://fonts.gstatic.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet"><style>${css}</style>')`
     // console.log(js)
     await page.goto(`https://notion.so/${params.page}`, {
@@ -155,7 +155,7 @@ async function createPDF(params: PDFGen) {
       await browser.close()
     }
     if (res) {
-      // await fsPromises.writeFile(params.path, res)
+      await fsPromises.writeFile(params.path, res)
     }
   }
 }
