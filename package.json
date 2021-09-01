@@ -12,7 +12,7 @@
   "scripts": {
     "dev": "yarn run next dev",
     "build": "yarn run next build",
-    "start": "yarn run next start",
+    "start": "yarn run next start -p ${PORT:-3000}",
     "start:prod": "yarn run build && yarn run start",
     "deploy": "vercel --prod",
     "deps": "run-s deps:*",
